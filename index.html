@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shabd Vocab Coach</title>
+<meta name="description" content="Shabd: an AI voice coach that helps you learn English vocabulary with Hindi hints.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500&family=Mukta:wght@400;500;700&display=swap">
+<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: a "stage" (voice orb + 3D flashcard) beside a glass conversation panel; stacks on phones. */
+:root {
+  --bg: #E7EEEA;
+  --bg-glow: #CFE3D9;
+  --surface: rgba(255, 255, 255, 0.74);
+  --surface-solid: #FFFFFF;
+  --ink: #12201A;
+  --muted: #53645B;
+  --line: rgba(18, 32, 26, 0.11);
+  --accent: #0C6E58;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #D5EBE2;
+  --mark: #946500;
+  --mark-bg: #FAEECD;
+  --good: #1A7341;
+  --good-bg: #DBF0E2;
+  --warn: #91500A;
+  --warn-bg: #FBE9D1;
+  --agent-bg: #FFFFFF;
+  --user-bg: #0C6E58;
+  --user-ink: #FFFFFF;
+  --orb-a: #46D6AB;
+  --orb-b: #0B6553;
+  --orb-c: #F2C14E;
+  --shadow-sm: 0 1px 2px rgba(10, 30, 20, 0.06), 0 4px 12px rgba(10, 30, 20, 0.06);
+  --shadow: 0 1px 2px rgba(10, 30, 20, 0.06), 0 10px 28px rgba(10, 30, 20, 0.09), 0 30px 70px rgba(10, 30, 20, 0.10);
+  --f-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --f-body: "Mukta", "Noto Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #09110E; --bg-glow: #12302A; --surface: rgba(24, 36, 30, 0.74); --surface-solid: #15201B;
+    --ink: #E3EBE6; --muted: #8FA197; --line: rgba(227, 235, 230, 0.10);
+    --accent: #4CC9A3; --accent-ink: #06231A; --accent-soft: #15382E;
+    --mark: #F0C24B; --mark-bg: #3A2F12; --good: #72D49C; --good-bg: #14301F; --warn: #F2B45A; --warn-bg: #3A2A12;
+    --agent-bg: #1B2823; --user-bg: #2B8A70; --user-ink: #FFFFFF;
+    --orb-a: #5EE8BE; --orb-b: #0B5546; --orb-c: #F2C14E;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 30px rgba(0, 0, 0, 0.35), 0 30px 70px rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #09110E; --bg-glow: #12302A; --surface: rgba(24, 36, 30, 0.74); --surface-solid: #15201B;
+  --ink: #E3EBE6; --muted: #8FA197; --line: rgba(227, 235, 230, 0.10);
+  --accent: #4CC9A3; --accent-ink: #06231A; --accent-soft: #15382E;
+  --mark: #F0C24B; --mark-bg: #3A2F12; --good: #72D49C; --good-bg: #14301F; --warn: #F2B45A; --warn-bg: #3A2A12;
+  --agent-bg: #1B2823; --user-bg: #2B8A70; --user-ink: #FFFFFF;
+  --orb-a: #5EE8BE; --orb-b: #0B5546; --orb-c: #F2C14E;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 30px rgba(0, 0, 0, 0.35), 0 30px 70px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  background: radial-gradient(900px 520px at 12% -8%, var(--bg-glow), transparent 70%),
+              radial-gradient(700px 480px at 100% 110%, var(--bg-glow), transparent 70%), var(--bg);
+  color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 40px;
+  min-height: 100vh;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, summary:focus-visible, canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.label { font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* Top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-family: var(--f-display); font-weight: 400; font-size: 2.2rem; line-height: 1; margin: 0; letter-spacing: -0.01em; }
+.brand h1 span { color: var(--accent); }
+.brand p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+.settings { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 7px; font-size: 0.82rem; padding: 4px 11px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.pill.on i { background: var(--good); box-shadow: 0 0 0 3px var(--good-bg); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.seg button { border: 0; background: transparent; padding: 5px 12px; font-size: 0.84rem; color: var(--muted); transition: background 0.25s var(--ease), color 0.25s var(--ease); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+/* Grid */
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Stage */
+.stage { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.orb-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.orb { width: 220px; height: 220px; max-width: 100%; cursor: pointer; border-radius: 50%; touch-action: manipulation; }
+@media (max-width: 480px) { .orb { width: 180px; height: 180px; } }
+.orb-caption { text-align: center; min-height: 3.1em; }
+.orb-caption b { display: block; font-weight: 500; font-size: 1.05rem; transition: opacity 0.25s; }
+.orb-caption span { color: var(--muted); font-size: 0.9rem; overflow-wrap: anywhere; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+
+/* Setup */
+.setup { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.levels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; perspective: 900px; }
+@media (max-width: 420px) { .levels { grid-template-columns: minmax(0, 1fr); } }
+.level {
+  text-align: left; background: var(--surface-solid); border: 1.5px solid var(--line); border-radius: 16px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 2px; box-shadow: var(--shadow-sm);
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform 0.25s var(--ease), border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.level:hover { box-shadow: var(--shadow); }
+.level strong { font-weight: 700; }
+.level small { color: var(--muted); font-family: var(--f-mono); font-size: 0.72rem; }
+.level[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.level .tag { align-self: flex-start; font-family: var(--f-mono); font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mark); background: var(--mark-bg); padding: 1px 7px; border-radius: 999px; margin-bottom: 2px; }
+.topic { display: flex; gap: 8px; flex-wrap: wrap; }
+.topic input { flex: 1 1 180px; min-width: 0; font: inherit; color: var(--ink); background: var(--surface-solid); border: 1.5px solid var(--line); border-radius: 12px; padding: 9px 12px; }
+.topic-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic-chips button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 2px 10px; font-size: 0.82rem; color: var(--muted); }
+.primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 14px; padding: 12px 18px; font-weight: 700; font-size: 1rem; box-shadow: 0 6px 18px rgba(12, 110, 88, 0.28); transition: transform 0.2s var(--ease), box-shadow 0.2s; }
+.primary:hover { transform: translateY(-1px); }
+.primary:active { transform: translateY(1px) scale(0.99); }
+.primary:disabled { opacity: 0.55; cursor: progress; transform: none; }
+.secondary { background: var(--surface-solid); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 16px; font-weight: 500; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.hint-text { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.err { color: var(--warn); font-size: 0.9rem; margin: 0; }
+
+/* 3D flashcard */
+.flip { perspective: 1400px; }
+.tilt { transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.35s var(--ease); transform-style: preserve-3d; }
+.flip-inner { display: grid; transform-style: preserve-3d; transition: transform 0.8s var(--ease); }
+.flip.revealed .flip-inner { transform: rotateY(180deg); }
+.face {
+  grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--surface-solid); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow);
+  padding: 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 240px;
+  position: relative; overflow: hidden;
+}
+.face::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.35), transparent 40%); pointer-events: none; opacity: 0.6; }
+.face.back { transform: rotateY(180deg); }
+.face-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.headword { font-family: var(--f-display); font-weight: 400; font-size: clamp(2.6rem, 7vw, 3.8rem); line-height: 1; margin: 6px 0 0; overflow-wrap: anywhere; text-wrap: balance; }
+.pron { font-family: var(--f-mono); font-size: 0.92rem; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+.pos { color: var(--accent); font-style: italic; }
+.face p { margin: 0; }
+.prompt-line { margin-top: auto; color: var(--muted); }
+.hindi { background: var(--mark-bg); border-radius: 12px; padding: 8px 12px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.hindi .label { color: var(--mark); }
+.hindi strong { font-size: 1.2rem; font-weight: 500; }
+.back .def { font-size: 1.15rem; }
+.back .ex { color: var(--muted); font-style: italic; }
+.flip-btn { align-self: flex-start; border: 0; background: transparent; color: var(--accent); padding: 0; font-size: 0.88rem; font-weight: 500; }
+.leaving { animation: leave 0.32s var(--ease) forwards; }
+.entering { animation: enter 0.5s var(--ease) both; }
+@keyframes leave { to { opacity: 0; transform: translateX(-30px) rotateY(18deg) scale(0.96); } }
+@keyframes enter { from { opacity: 0; transform: translateX(30px) rotateY(-18deg) scale(0.96); } to { opacity: 1; transform: none; } }
+
+.track { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--f-mono); font-size: 0.74rem; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--surface); transition: all 0.35s var(--ease); }
+.chip.current { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.chip.ok { background: var(--good-bg); color: var(--good); border-color: transparent; }
+.chip.review { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+
+/* Recap */
+.recap { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.score { font-family: var(--f-display); font-size: 3.4rem; line-height: 1; }
+.score small { font-family: var(--f-body); font-size: 1rem; color: var(--muted); }
+.recap-list { display: flex; flex-direction: column; }
+.recap-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.recap-row b { font-family: var(--f-display); font-weight: 400; font-size: 1.3rem; }
+.recap-row .r-hi { font-size: 0.9rem; color: var(--muted); text-align: right; }
+
+/* Conversation */
+.talk { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.talk-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 14px 18px 0; }
+.log { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; min-height: 300px; max-height: 470px; overflow-y: auto; scroll-behavior: smooth; }
+.msg { max-width: 88%; padding: 9px 14px; border-radius: 18px; line-height: 1.45; overflow-wrap: anywhere; box-shadow: var(--shadow-sm); }
+.msg.anim { animation: msgIn 0.38s var(--ease) both; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+.msg.agent { background: var(--agent-bg); border-bottom-left-radius: 6px; align-self: flex-start; border: 1px solid var(--line); }
+.msg.user { background: var(--user-bg); color: var(--user-ink); border-bottom-right-radius: 6px; align-self: flex-end; }
+.msg.note { align-self: center; background: transparent; box-shadow: none; color: var(--muted); font-size: 0.85rem; text-align: center; padding: 2px 8px; }
+.msg .who { display: block; font-family: var(--f-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; margin-bottom: 2px; }
+.msg.ai-answer { border-color: var(--accent); }
+.typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: dot 1.1s infinite ease-in-out; }
+.typing i:nth-child(2) { animation-delay: 0.15s; } .typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dot { 0%, 80%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+.controls { border-top: 1px solid var(--line); padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 10px; }
+.notice { background: var(--warn-bg); color: var(--warn); border-radius: 12px; padding: 8px 12px; font-size: 0.88rem; }
+.inputbar { display: flex; gap: 8px; align-items: center; }
+.mic { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; position: relative; box-shadow: 0 6px 16px rgba(12, 110, 88, 0.3); transition: transform 0.2s var(--ease); }
+.mic:active { transform: scale(0.94); }
+.mic svg { width: 22px; height: 22px; }
+.mic:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+.mic.listening::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 3px solid var(--accent); animation: ring 1.2s ease-out infinite; }
+@keyframes ring { from { transform: scale(0.95); opacity: 0.9; } to { transform: scale(1.3); opacity: 0; } }
+.inputbar input { flex: 1; min-width: 0; font: inherit; color: var(--ink); background: var(--surface-solid); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 13px; transition: border-color 0.2s; }
+.inputbar input:focus { border-color: var(--accent); outline: none; }
+.inputbar .send { border: 0; border-radius: 14px; background: var(--ink); color: var(--bg); padding: 10px 16px; font-weight: 500; }
+.inputbar .send:disabled, .inputbar input:disabled { opacity: 0.5; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick button { background: var(--surface-solid); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 0.85rem; color: var(--muted); transition: all 0.2s var(--ease); }
+.quick button:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.quick button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.quick button:disabled { opacity: 0.4; cursor: default; }
+
+/* About */
+details.about { padding: 14px 20px; }
+details.about summary { cursor: pointer; font-weight: 700; }
+.about-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 12px; }
+@media (max-width: 900px) { .about-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .about-grid { grid-template-columns: minmax(0, 1fr); } }
+.about-grid h3 { font-size: 0.95rem; margin: 0 0 4px; }
+.about-grid p, .about-grid li { color: var(--muted); font-size: 0.92rem; margin: 0; }
+.about-grid ol, .about-grid ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Shabd<span>.</span></h1>
+      <p>Your AI voice coach for English words</p>
+    </div>
+    <div class="settings">
+      <span class="pill" id="aiPill" title="AI status"><i></i><span id="aiPillText">Connecting AI…</span></span>
+      <div class="seg" role="group" aria-label="Voice speed">
+        <button id="spdNormal" aria-pressed="true">Normal</button>
+        <button id="spdSlow" aria-pressed="false">Slow</button>
+      </div>
+      <div class="seg" role="group" aria-label="Coach voice">
+        <button id="voiceOn" aria-pressed="true">Voice on</button>
+        <button id="voiceOff" aria-pressed="false">Mute</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="stage">
+      <div class="orb-wrap">
+        <canvas class="orb" id="orb" width="440" height="440" tabindex="0" role="button" aria-label="Voice orb. Tap to speak"></canvas>
+        <div class="orb-caption" aria-live="polite">
+          <b id="statusMain">Pick a level to begin</b>
+          <span id="statusSub">The coach speaks each word. Tap the orb to answer by voice.</span>
+        </div>
+      </div>
+      <div id="stageBody"></div>
+    </section>
+
+    <section class="panel talk" aria-label="Conversation with the coach">
+      <div class="talk-head"><span class="label">Conversation</span><span class="label" id="sessionLabel"></span></div>
+      <div class="log" id="log" role="log"></div>
+      <div class="controls">
+        <div class="notice" id="micNote" hidden>Voice replies are not available in this view, so type your answers. The coach still speaks out loud. For full voice, open the hosted link in Chrome or Edge.</div>
+        <form class="inputbar" id="typeForm" autocomplete="off">
+          <button type="button" class="mic" id="mic" aria-label="Tap to speak" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none"/><path d="M5 11a7 7 0 0 0 14 0" fill="none"/><path d="M12 18v3" fill="none"/></svg>
+          </button>
+          <input id="typeInput" type="text" placeholder="Type your answer…" aria-label="Your answer" disabled>
+          <button type="submit" class="send" id="sendBtn" disabled>Send</button>
+        </form>
+        <div class="quick" id="quick">
+          <button data-cmd="hint" disabled>Hint (Hindi)</button>
+          <button data-cmd="ask" disabled>Ask about this word</button>
+          <button data-cmd="repeat" disabled>Repeat</button>
+          <button data-cmd="skip" disabled>I don't know</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <details class="panel about">
+    <summary>About this prototype</summary>
+    <div class="about-grid">
+      <div>
+        <h3>Who it is for</h3>
+        <p>Learners who understand some English but struggle to find the right word, at work, in interviews or in daily life. Hindi hints act as a safety net.</p>
+      </div>
+      <div>
+        <h3>The learning loop</h3>
+        <ol>
+          <li>Coach says the word.</li>
+          <li>You explain it in your own words.</li>
+          <li>You use it in a sentence.</li>
+          <li>Missed words return later.</li>
+        </ol>
+      </div>
+      <div>
+        <h3>Where AI helps</h3>
+        <ul>
+          <li>Understands explanations in your own words, Hinglish included.</li>
+          <li>Coaches your sentence and suggests a better one.</li>
+          <li>Answers follow-up questions about the word.</li>
+          <li>Creates word sets on any topic.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What I would measure</h3>
+        <ul>
+          <li>Day-1 and day-7 recall per word.</li>
+          <li>Where users drop off in a round.</li>
+          <li>Hint and "close" rates by level.</li>
+          <li>Which topics people request most.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ======================================================
+  // Word bank
+  // ======================================================
+  var BANK = {
+    beginner: [
+      { w: "curious", syl: "cu·ri·ous", pos: "adjective", def: "eager to know or learn about something", hi: "जिज्ञासु", hiRoman: "jigyasu", ex: "The curious child asked why the sky is blue.", kw: ["want to know","wants to know","eager to know","interested","inquisitive","learn","know more","wonder","questions","find out"], forms: ["curious","curiosity","curiously"] },
+      { w: "brave", syl: "brave", pos: "adjective", def: "ready to face danger or difficulty without fear", hi: "बहादुर", hiRoman: "bahadur", ex: "She was brave enough to speak in front of the whole class.", kw: ["fear","fearless","courage","courageous","bold","not afraid","daring","strong","hero"], forms: ["brave","bravely","bravery","braver","bravest"] },
+      { w: "honest", syl: "hon·est", pos: "adjective", def: "telling the truth and not cheating", hi: "ईमानदार", hiRoman: "imandar", ex: "He was honest and returned the extra change to the shopkeeper.", kw: ["truth","true","truthful","not lie","no lie","doesn't lie","does not lie","sincere","not cheat","fair"], forms: ["honest","honestly","honesty"] },
+      { w: "borrow", syl: "bor·row", pos: "verb", def: "to take something from someone and give it back later", hi: "उधार लेना", hiRoman: "udhar", ex: "Can I borrow your pen for a minute?", kw: ["give back","return","take","lend","loan","use for some time","temporarily","later"], forms: ["borrow","borrowed","borrowing","borrows"] },
+      { w: "gentle", syl: "gen·tle", pos: "adjective", def: "kind, calm and soft in the way you behave", hi: "कोमल", hiRoman: "komal", ex: "The nurse was gentle with the frightened puppy.", kw: ["kind","soft","calm","mild","tender","careful","not rough","polite","sweet"], forms: ["gentle","gently","gentler","gentleness"] },
+      { w: "ancient", syl: "an·cient", pos: "adjective", def: "very old, from a long time ago", hi: "प्राचीन", hiRoman: "prachin", ex: "We visited an ancient temple that is over a thousand years old.", kw: ["old","long ago","long time ago","past","historic","history","centuries","olden"], forms: ["ancient"] },
+      { w: "tidy", syl: "ti·dy", pos: "adjective", def: "neat, clean and well arranged", hi: "साफ़-सुथरा", hiRoman: "saaf", ex: "Please keep your desk tidy before you leave.", kw: ["neat","clean","organised","organized","arranged","in order","proper"], forms: ["tidy","tidied","tidying","tidier","tidiness","tidies"] },
+      { w: "polite", syl: "po·lite", pos: "adjective", def: "having good manners and showing respect", hi: "विनम्र", hiRoman: "vinamra", ex: "It is polite to say thank you when someone helps you.", kw: ["manners","respect","respectful","courteous","nice","kind","well behaved","humble"], forms: ["polite","politely","politeness"] }
+    ],
+    intermediate: [
+      { w: "reluctant", syl: "re·luc·tant", pos: "adjective", def: "unwilling and hesitant to do something", hi: "अनिच्छुक", hiRoman: "anichchhuk", ex: "He was reluctant to share his phone number with a stranger.", kw: ["unwilling","hesitant","hesitate","not want","don't want","doesn't want","does not want","not willing","not ready","not interested"], forms: ["reluctant","reluctantly","reluctance"] },
+      { w: "abundant", syl: "a·bun·dant", pos: "adjective", def: "existing in large amounts, more than enough", hi: "प्रचुर", hiRoman: "prachur", ex: "Mangoes are abundant in the markets every summer.", kw: ["plenty","lots","a lot","large amount","more than enough","many","plentiful","much","excess","huge amount"], forms: ["abundant","abundance","abundantly"] },
+      { w: "persuade", syl: "per·suade", pos: "verb", def: "to make someone agree or do something by giving good reasons", hi: "मनाना", hiRoman: "manana", ex: "I persuaded my father to let me take the evening class.", kw: ["convince","agree","influence","talk into","make someone","reasons","change mind","change their mind"], forms: ["persuade","persuaded","persuading","persuades","persuasive","persuasion"] },
+      { w: "diligent", syl: "dil·i·gent", pos: "adjective", def: "hardworking and careful about doing a job well", hi: "मेहनती", hiRoman: "mehnati", ex: "A diligent student revises a little every day.", kw: ["hardworking","hard working","hard work","works hard","careful","sincere","dedicated","effort","consistent"], forms: ["diligent","diligently","diligence"] },
+      { w: "inevitable", syl: "in·ev·i·ta·ble", pos: "adjective", def: "certain to happen, impossible to avoid", hi: "अटल", hiRoman: "atal", ex: "Mistakes are inevitable when you learn something new.", kw: ["certain","cannot avoid","can't avoid","cannot be avoided","unavoidable","sure to happen","will happen","must happen","bound to happen"], forms: ["inevitable","inevitably"] },
+      { w: "convey", syl: "con·vey", pos: "verb", def: "to communicate or express an idea or feeling", hi: "व्यक्त करना", hiRoman: "vyakt", ex: "Her smile conveyed how happy she was.", kw: ["communicate","express","tell","share","pass on","carry","deliver","show","transmit"], forms: ["convey","conveyed","conveying","conveys"] },
+      { w: "frugal", syl: "fru·gal", pos: "adjective", def: "careful not to waste money or resources", hi: "किफ़ायती", hiRoman: "kifayati", ex: "Being frugal helped her save for a new laptop.", kw: ["save","saving","not waste","no waste","economical","thrifty","careful with money","spend less","less money","budget"], forms: ["frugal","frugally","frugality"] },
+      { w: "vivid", syl: "viv·id", pos: "adjective", def: "very bright, clear or full of detail", hi: "जीवंत", hiRoman: "jeevant", ex: "I still have a vivid memory of my first day at school.", kw: ["bright","clear","detailed","colorful","colourful","strong","lively","sharp","realistic"], forms: ["vivid","vividly"] }
+    ],
+    advanced: [
+      { w: "meticulous", syl: "me·tic·u·lous", pos: "adjective", def: "giving great attention to every small detail", hi: "बारीकी से काम करने वाला", hiRoman: "bareeki", ex: "She kept meticulous notes of every customer call.", kw: ["detail","careful","precise","thorough","perfect","perfectionist","attention","accurate"], forms: ["meticulous","meticulously"] },
+      { w: "ambiguous", syl: "am·big·u·ous", pos: "adjective", def: "having more than one possible meaning", hi: "अस्पष्ट", hiRoman: "aspasht", ex: "The message was ambiguous, so I called to confirm.", kw: ["unclear","not clear","more than one meaning","two meanings","multiple meanings","double meaning","confusing","vague"], forms: ["ambiguous","ambiguity","ambiguously"] },
+      { w: "pragmatic", syl: "prag·mat·ic", pos: "adjective", def: "dealing with problems in a practical, realistic way", hi: "व्यावहारिक", hiRoman: "vyavaharik", ex: "Taking the train was the pragmatic choice during rush hour.", kw: ["practical","realistic","sensible","real world","logical","what works"], forms: ["pragmatic","pragmatically","pragmatism"] },
+      { w: "resilient", syl: "re·sil·ient", pos: "adjective", def: "able to recover quickly from difficulties", hi: "जुझारू", hiRoman: "jujharu", ex: "Resilient people learn from failure and try again.", kw: ["recover","bounce back","strong","tough","withstand","overcome","come back","not give up","flexible"], forms: ["resilient","resilience"] },
+      { w: "ephemeral", syl: "e·phem·er·al", pos: "adjective", def: "lasting for a very short time", hi: "क्षणिक", hiRoman: "kshanik", ex: "Social media trends are often ephemeral.", kw: ["short","brief","temporary","short time","short period","fleeting","not last","doesn't last","momentary","quickly"], forms: ["ephemeral"] },
+      { w: "candid", syl: "can·did", pos: "adjective", def: "honest and direct, even when the truth is uncomfortable", hi: "स्पष्टवादी", hiRoman: "spashtvadi", ex: "My mentor gave me candid feedback on my resume.", kw: ["honest","frank","straightforward","direct","truthful","open","blunt"], forms: ["candid","candidly","candour","candor"] },
+      { w: "scrutinize", syl: "scru·ti·nize", pos: "verb", def: "to examine something very carefully", hi: "बारीकी से जाँचना", hiRoman: "jaanchna", ex: "The manager scrutinized every number in the report.", kw: ["examine","inspect","check","carefully","closely","analyse","analyze","study","review","investigate"], forms: ["scrutinize","scrutinise","scrutinized","scrutinised","scrutinizing","scrutinising","scrutiny","scrutinizes"] },
+      { w: "eloquent", syl: "el·o·quent", pos: "adjective", def: "able to speak or write clearly and persuasively", hi: "वाक्पटु", hiRoman: "vakpatu", ex: "Her eloquent speech moved the whole audience.", kw: ["fluent","speak well","speaks well","well spoken","articulate","persuasive","expressive","good speaker","good with words"], forms: ["eloquent","eloquently","eloquence"] }
+    ],
+    career: [
+      { w: "initiative", syl: "in·i·tia·tive", pos: "noun", def: "the ability to act and take charge without being told", hi: "पहल", hiRoman: "pahal", ex: "She showed initiative by fixing the problem before her manager asked.", kw: ["take charge","start","without being told","proactive","first step","on your own","lead","self motivated","take action"], forms: ["initiative","initiatives"] },
+      { w: "negotiate", syl: "ne·go·ti·ate", pos: "verb", def: "to discuss something to reach an agreement", hi: "मोलभाव करना", hiRoman: "molbhav", ex: "He negotiated a better salary before joining the company.", kw: ["discuss","agreement","agree","bargain","deal","settle","compromise","talk","discussion"], forms: ["negotiate","negotiated","negotiating","negotiation","negotiates"] },
+      { w: "deadline", syl: "dead·line", pos: "noun", def: "the latest time by which work must be finished", hi: "अंतिम तिथि", hiRoman: "antim", ex: "The report deadline is Friday at 5 pm.", kw: ["last date","time limit","due date","finish by","submit by","final date","last time","due"], forms: ["deadline","deadlines"] },
+      { w: "collaborate", syl: "col·lab·o·rate", pos: "verb", def: "to work together with others on a task", hi: "मिलकर काम करना", hiRoman: "milkar", ex: "Our team collaborated with sales on the product launch.", kw: ["work together","team","teamwork","together","cooperate","partner","help each other","jointly"], forms: ["collaborate","collaborated","collaborating","collaboration","collaborates"] },
+      { w: "feasible", syl: "fea·si·ble", pos: "adjective", def: "possible and practical to do", hi: "संभव", hiRoman: "sambhav", ex: "Finishing the whole project in two days is not feasible.", kw: ["possible","practical","can be done","doable","achievable","realistic","workable"], forms: ["feasible","feasibility"] },
+      { w: "punctual", syl: "punc·tu·al", pos: "adjective", def: "arriving or doing things exactly on time", hi: "समय का पाबंद", hiRoman: "paband", ex: "Being punctual for an interview creates a good first impression.", kw: ["on time","in time","not late","timely","never late","punctuality","time"], forms: ["punctual","punctually","punctuality"] },
+      { w: "prioritize", syl: "pri·or·i·tize", pos: "verb", def: "to decide what is most important and do it first", hi: "प्राथमिकता देना", hiRoman: "prathmikta", ex: "I prioritize urgent client emails every morning.", kw: ["most important","first","important first","priority","order","rank","focus","important things"], forms: ["prioritize","prioritise","prioritized","prioritised","prioritizing","prioritising","priority","priorities","prioritizes"] },
+      { w: "credible", syl: "cred·i·ble", pos: "adjective", def: "able to be believed or trusted", hi: "विश्वसनीय", hiRoman: "vishwasniya", ex: "Give credible examples from your past work in an interview.", kw: ["believable","trust","trusted","trustworthy","reliable","believe","genuine","true"], forms: ["credible","credibility","credibly"] }
+    ]
+  };
+  var LEVELS = {
+    beginner: { name: "Beginner", eg: "curious, borrow" },
+    intermediate: { name: "Intermediate", eg: "reluctant, frugal" },
+    advanced: { name: "Advanced", eg: "candid, ephemeral" },
+    career: { name: "Career & interviews", eg: "initiative, deadline", tag: "For job seekers" }
+  };
+  var TOPIC_IDEAS = ["job interviews", "banking", "travel", "healthcare", "customer service"];
+  var SESSION_SIZE = 5;
+  var STOP = " a an the to of and or in on at for with by from is are was were be been being it its this that these those your you my me i we they he she them his her our their as so very more than not no do does did can could will would should may might must have has had about into over under up down out off just also some any each every such what which who whom whose when where why how if then there here all both own same other only ".split(" ");
+
+  // ======================================================
+  // State
+  // ======================================================
+  var S = {
+    level: "beginner", topic: "", phase: "idle",
+    queue: [], order: [], results: {}, map: {}, cur: null,
+    meaningTries: 0, sentenceTries: 0, hintShown: false, revealed: false,
+    lastPrompt: "", busy: false, interruptible: false, slow: false, muted: false, askMode: false
+  };
+  var turnCounter = 0;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var stageBody = $("stageBody"), log = $("log"), micBtn = $("mic"), input = $("typeInput"), sendBtn = $("sendBtn");
+  var statusMain = $("statusMain"), statusSub = $("statusSub"), micNote = $("micNote");
+  var quickBtns = Array.prototype.slice.call(document.querySelectorAll("#quick button"));
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function cap(s) { s = String(s || ""); return s.charAt(0).toUpperCase() + s.slice(1); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function norm(t) { return " " + String(t).toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9'ऀ-ॿ ]+/g, " ").replace(/\s+/g, " ").trim() + " "; }
+  function tokens(t) { return norm(t).trim().split(" ").filter(Boolean); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function lev(a, b) {
+    var m = a.length, n = b.length, d = [], i, j;
+    for (i = 0; i <= m; i++) { d[i] = [i]; }
+    for (j = 0; j <= n; j++) { d[0][j] = j; }
+    for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[m][n];
+  }
+
+  function loadTally() { try { return JSON.parse(localStorage.getItem("shabd-tally") || "{}") || {}; } catch (e) { return {}; } }
+  function saveTally(t) { try { localStorage.setItem("shabd-tally", JSON.stringify(t)); } catch (e) {} }
+
+  // ======================================================
+  // Voice orb (canvas, shaded to look 3D)
+  // ======================================================
+  var Orb = (function () {
+    var cv = $("orb"), ctx = cv.getContext("2d");
+    var state = "idle", energy = 0.02, pulse = 0, t = 0, ripple = 0, colors = {}, running = false;
+    function hexToRgb(h) {
+      h = String(h).trim().replace("#", "");
+      if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join("");
+      var n = parseInt(h, 16); if (isNaN(n)) return [70, 214, 171];
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    function rgba(c, a) { return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")"; }
+    function readColors() {
+      var cs = getComputedStyle(document.documentElement);
+      colors = { a: hexToRgb(cs.getPropertyValue("--orb-a")), b: hexToRgb(cs.getPropertyValue("--orb-b")), c: hexToRgb(cs.getPropertyValue("--orb-c")) };
+    }
+    readColors();
+    try {
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { readColors(); if (reduceMotion) draw(); });
+      new MutationObserver(function () { readColors(); if (reduceMotion) draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    } catch (e) {}
+
+    function target() {
+      if (state === "speaking") return 0.05 + pulse * 0.09;
+      if (state === "listening") return 0.075 + pulse * 0.06;
+      if (state === "thinking") return 0.045;
+      return 0.022;
+    }
+    function draw() {
+      var size = cv.clientWidth || 220, dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var px = Math.round(size * dpr);
+      if (cv.width !== px) { cv.width = px; cv.height = px; }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, size, size);
+      var cx = size / 2, cy = size / 2 - size * 0.02, R = size * 0.30;
+      var A = colors.a, B = colors.b, C = colors.c;
+
+      // floor shadow
+      var sh = ctx.createRadialGradient(cx, cy + R * 1.32, 2, cx, cy + R * 1.32, R * 0.95);
+      sh.addColorStop(0, rgba(B, 0.35)); sh.addColorStop(1, rgba(B, 0));
+      ctx.save(); ctx.translate(cx, cy + R * 1.32); ctx.scale(1, 0.22); ctx.translate(-cx, -(cy + R * 1.32));
+      ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(cx, cy + R * 1.32, R * 0.95, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+
+      // listening ripple
+      if (state === "listening") {
+        var rr = R * (1.08 + (ripple % 1) * 0.5);
+        ctx.strokeStyle = rgba(A, 0.45 * (1 - (ripple % 1)));
+        ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // outer glow
+      var glow = ctx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * (1.55 + energy * 3));
+      glow.addColorStop(0, rgba(A, 0.30 + energy * 1.5)); glow.addColorStop(1, rgba(A, 0));
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(cx, cy, R * (1.55 + energy * 3), 0, Math.PI * 2); ctx.fill();
+
+      // blob body
+      var N = 72, pts = [];
+      for (var i = 0; i < N; i++) {
+        var th = (i / N) * Math.PI * 2;
+        var wob = Math.sin(3 * th + t * 1.3) * 0.55 + Math.sin(5 * th - t * 2.1) * 0.3 + Math.sin(2 * th + t * 0.7) * 0.45;
+        var r = R * (1 + energy * wob);
+        pts.push([cx + Math.cos(th) * r, cy + Math.sin(th) * r]);
+      }
+      ctx.beginPath();
+      for (var k = 0; k <= N; k++) {
+        var p0 = pts[k % N], p1 = pts[(k + 1) % N];
+        var mx = (p0[0] + p1[0]) / 2, my = (p0[1] + p1[1]) / 2;
+        if (k === 0) ctx.moveTo(mx, my); else ctx.quadraticCurveTo(p0[0], p0[1], mx, my);
+      }
+      ctx.closePath();
+      var body = ctx.createRadialGradient(cx - R * 0.38, cy - R * 0.42, R * 0.08, cx + R * 0.1, cy + R * 0.12, R * 1.25);
+      body.addColorStop(0, rgba(A, 1)); body.addColorStop(0.55, rgba([(A[0] + B[0]) >> 1, (A[1] + B[1]) >> 1, (A[2] + B[2]) >> 1], 1)); body.addColorStop(1, rgba(B, 1));
+      ctx.fillStyle = body; ctx.fill();
+
+      ctx.save(); ctx.clip();
+      // rim light, bottom right (warm)
+      var rim = ctx.createRadialGradient(cx + R * 0.7, cy + R * 0.75, R * 0.1, cx + R * 0.7, cy + R * 0.75, R * 0.95);
+      rim.addColorStop(0, rgba(C, 0.42)); rim.addColorStop(1, rgba(C, 0));
+      ctx.fillStyle = rim; ctx.fillRect(cx - R * 2, cy - R * 2, R * 4, R * 4);
+      // swirling inner band
+      ctx.globalCompositeOperation = "lighter";
+      var ang = t * (state === "thinking" ? 1.6 : 0.4);
+      var bx = cx + Math.cos(ang) * R * 0.35, by = cy + Math.sin(ang) * R * 0.35;
+      var band = ctx.createRadialGradient(bx, by, 0, bx, by, R * 0.8);
+      band.addColorStop(0, rgba(A, state === "thinking" ? 0.35 : 0.18)); band.addColorStop(1, rgba(A, 0));
+      ctx.fillStyle = band; ctx.fillRect(cx - R * 2, cy - R * 2, R * 4, R * 4);
+      if (state === "thinking") {
+        var bx2 = cx + Math.cos(ang + Math.PI) * R * 0.4, by2 = cy + Math.sin(ang + Math.PI) * R * 0.4;
+        var band2 = ctx.createRadialGradient(bx2, by2, 0, bx2, by2, R * 0.7);
+        band2.addColorStop(0, rgba(C, 0.28)); band2.addColorStop(1, rgba(C, 0));
+        ctx.fillStyle = band2; ctx.fillRect(cx - R * 2, cy - R * 2, R * 4, R * 4);
+      }
+      ctx.globalCompositeOperation = "source-over";
+      ctx.restore();
+
+      // specular highlight
+      var hx = cx - R * 0.36, hy = cy - R * 0.44;
+      var spec = ctx.createRadialGradient(hx, hy, 0, hx, hy, R * 0.42);
+      spec.addColorStop(0, "rgba(255,255,255,0.78)"); spec.addColorStop(0.45, "rgba(255,255,255,0.18)"); spec.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.save(); ctx.translate(hx, hy); ctx.rotate(-0.6); ctx.scale(1, 0.62); ctx.translate(-hx, -hy);
+      ctx.fillStyle = spec; ctx.beginPath(); ctx.arc(hx, hy, R * 0.42, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
+    function frame() {
+      t += 0.016 * (state === "speaking" ? 2.2 : state === "listening" ? 1.8 : 1);
+      ripple += state === "listening" ? 0.012 : 0;
+      pulse *= 0.93;
+      if (state === "speaking" && Math.random() < 0.06) pulse = Math.max(pulse, 0.5 + Math.random() * 0.5);
+      energy += (target() - energy) * 0.12;
+      draw();
+      requestAnimationFrame(frame);
+    }
+    function start() {
+      if (running) return; running = true;
+      if (reduceMotion) { draw(); return; }
+      requestAnimationFrame(frame);
+    }
+    return {
+      start: start,
+      set: function (s) { state = s; if (reduceMotion) { energy = target(); draw(); } },
+      kick: function (v) { pulse = Math.max(pulse, v || 0.8); }
+    };
+  })();
+
+  // ======================================================
+  // Speech output
+  // ======================================================
+  var synth = window.speechSynthesis || null, voices = [];
+  function loadVoices() { try { voices = synth ? synth.getVoices() : []; } catch (e) { voices = []; } }
+  if (synth) { loadVoices(); try { synth.onvoiceschanged = loadVoices; } catch (e) {} }
+  function pickVoice(lang) {
+    if (!voices.length) return null;
+    var pref = lang === "hi" ? ["hi-IN"] : ["en-IN", "en-GB", "en-US", "en"];
+    for (var i = 0; i < pref.length; i++) for (var j = 0; j < voices.length; j++) {
+      if ((voices[j].lang || "").replace("_", "-").indexOf(pref[i]) === 0) return voices[j];
+    }
+    return null;
+  }
+  function speak(text, lang) {
+    return new Promise(function (resolve) {
+      if (!synth || S.muted) return wait(Math.min(900, 200 + text.length * 12)).then(resolve);
+      try {
+        synth.cancel();
+        var v = pickVoice(lang || "en");
+        if (lang === "hi" && !v) return resolve();
+        var u = new SpeechSynthesisUtterance(text);
+        if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-IN"; }
+        u.rate = S.slow ? 0.75 : 0.96;
+        var done = false;
+        var finish = function () { if (!done) { done = true; Orb.set(listening ? "listening" : "idle"); resolve(); } };
+        u.onstart = function () { Orb.set("speaking"); };
+        u.onboundary = function () { Orb.kick(0.9); };
+        u.onend = finish; u.onerror = finish;
+        setTimeout(finish, Math.max(2500, text.length * (S.slow ? 110 : 85)) + 1500);
+        Orb.set("speaking");
+        synth.speak(u);
+      } catch (e) { resolve(); }
+    });
+  }
+
+  // ======================================================
+  // Speech input
+  // ======================================================
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  var micBlocked = !SR, rec = null, listening = false;
+  if (!SR) micNote.hidden = false;
+  function canTalk() { return S.phase === "meaning" || S.phase === "sentence"; }
+  function setListening(on) {
+    listening = on;
+    micBtn.classList.toggle("listening", on);
+    micBtn.setAttribute("aria-label", on ? "Listening. Tap to stop" : "Tap to speak");
+    Orb.set(on ? "listening" : "idle");
+    if (on) { statusMain.textContent = "Listening…"; statusSub.textContent = S.askMode ? "Ask your question now." : "Speak your answer now."; }
+    else if (!S.busy) setIdleStatus();
+  }
+  function setIdleStatus() {
+    if (S.phase === "idle") { statusMain.textContent = "Pick a level to begin"; statusSub.textContent = "The coach speaks each word. Tap the orb to answer by voice."; return; }
+    if (S.phase === "done") { statusMain.textContent = "Round complete"; statusSub.textContent = "See your recap below."; return; }
+    if (S.askMode) { statusMain.textContent = "Ask anything about “" + S.cur.w + "”"; statusSub.textContent = micBlocked ? "Type your question below." : "Tap the orb and ask, or type below."; return; }
+    statusMain.textContent = S.phase === "meaning" ? "What does it mean?" : "Use it in a sentence";
+    statusSub.textContent = micBlocked ? "Type your answer below." : "Tap the orb and speak, or type below.";
+  }
+  function listen() {
+    if (micBlocked) { input.focus(); return; }
+    if (listening || (S.busy && !S.interruptible) || !canTalk()) return;
+    if (S.busy) { turnCounter++; try { synth && synth.cancel(); } catch (e) {} S.busy = false; }
+    try {
+      rec = new SR();
+      rec.lang = "en-IN"; rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
+      var finalText = "";
+      rec.onresult = function (e) {
+        var interim = "";
+        for (var i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) finalText += e.results[i][0].transcript; else interim += e.results[i][0].transcript;
+        }
+        Orb.kick(0.7);
+        if (interim) statusSub.textContent = "“" + interim + "”";
+      };
+      rec.onerror = function (e) {
+        if (e.error === "not-allowed" || e.error === "service-not-allowed" || e.error === "audio-capture") {
+          micBlocked = true; micNote.hidden = false; setInputsEnabled(true); input.focus();
+        } else if (e.error === "no-speech") {
+          statusSub.textContent = "I didn't hear anything. Tap the orb to try again.";
+        }
+      };
+      rec.onend = function () { setListening(false); if (finalText.trim()) handleUser(finalText.trim(), true); };
+      setListening(true);
+      rec.start();
+    } catch (e) { setListening(false); micBlocked = true; micNote.hidden = false; setInputsEnabled(true); }
+  }
+  function stopListening() { try { if (rec) rec.stop(); } catch (e) {} }
+
+  // ======================================================
+  // AI layer: Gemini via the site's server function, Claude inside a Claude artifact, or none
+  // ======================================================
+  var AI = { mode: null, sample: null };
+  var API_URL = "/api/coach";
+  function clip(s, n) { s = String(s == null ? "" : s).replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n) : s; }
+  // Same prompts as the server function, used only when running inside Claude.
+  function buildPrompt(task, d) {
+    var coach = "You are Shabd, a warm English vocabulary coach for Indian learners. Use very simple English.";
+    var word = d.word ? "Target word: \"" + clip(d.word.w, 40) + "\" (" + clip(d.word.pos, 20) + "): " + clip(d.word.def, 160) + "." : "";
+    if (task === "judge") return coach + "\n" + word + "\nThe learner tried to explain the meaning in their own words. It came from speech recognition, so ignore spelling and punctuation; Hinglish or Hindi is fine.\nLearner said: \"" + clip(d.answer, 300) + "\"\nVerdict rules: \"correct\" if the core idea is right, even if informal or incomplete; \"close\" if partly right or too vague; \"wrong\" otherwise.\nReply with only JSON: {\"verdict\":\"correct|close|wrong\",\"feedback\":\"one short spoken sentence, max 20 words. If not correct, nudge without giving the full definition.\"}";
+    if (task === "sentence") return coach + "\n" + word + "\nThe learner made a sentence with the word. It came from speech recognition, so ignore punctuation and capitalisation, and if the target word looks misheard as a similar-sounding word, assume they said the target word.\nSentence: \"" + clip(d.sentence, 300) + "\"\nJudge only whether the word is used with the right meaning and the sentence is understandable.\nReply with only JSON: {\"correct\":true,\"feedback\":\"one encouraging sentence, max 22 words, mention one specific thing\",\"better\":\"an improved version of their sentence, or empty string if already good\"}";
+    if (task === "ask") return coach + "\n" + word + "\nThe learner asked a question about this word: \"" + clip(d.question, 300) + "\"\nAnswer in at most 45 words, in a natural spoken style with no markdown or lists. Use a short example if it helps. If the question has nothing to do with English learning, kindly bring them back to the word.\nReply with only JSON: {\"answer\":\"...\"}";
+    if (task === "topic") return coach + "\nCreate " + SESSION_SIZE + " useful English words for a learner on the topic: \"" + clip(d.topic, 60) + "\". Difficulty: " + clip(d.level, 20) + ". Prefer words people actually use at work and in daily life; avoid very rare words. If the topic is unsafe or inappropriate, return an empty list.\nFor each word give: w (lowercase word), syl (syllables joined by the · character), pos (noun, verb, adjective or adverb), def (simple definition, max 14 words), hi (Hindi meaning in Devanagari, 1 to 3 words), hiRoman (that Hindi meaning in lowercase roman letters, one word), ex (example sentence using the word, max 16 words), kw (6 short lowercase words or phrases a learner might say when explaining the meaning), forms (lowercase forms of the word, including the word itself).\nReply with only JSON: {\"words\":[{\"w\":\"\",\"syl\":\"\",\"pos\":\"\",\"def\":\"\",\"hi\":\"\",\"hiRoman\":\"\",\"ex\":\"\",\"kw\":[],\"forms\":[]}]}";
+    return null;
+  }
+  function callAI(task, data) {
+    if (AI.mode === "gemini") {
+      return fetch(API_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ task: task, data: data }) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (!j || !j.ok) throw new Error((j && j.error) || "ai_failed"); return j.result; });
+    }
+    if (AI.mode === "claude" && AI.sample) {
+      return AI.sample.json(buildPrompt(task, data), { modelTier: "quick", cache: false }).catch(function (e) {
+        if (e && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].indexOf(e.code) > -1) { AI.mode = null; updatePill(); }
+        throw e;
+      });
+    }
+    return Promise.reject(new Error("no_ai"));
+  }
+  function updatePill() {
+    var pill = $("aiPill"), txt = $("aiPillText");
+    pill.classList.toggle("on", !!AI.mode);
+    txt.textContent = AI.mode === "gemini" ? "AI coach on · Gemini" : AI.mode === "claude" ? "AI coach on · Claude" : "Basic mode (no AI)";
+    if (S.phase === "idle") renderSetup(true);
+  }
+  function initAI() {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 5000);
+    var tryGemini = (location.protocol === "http:" || location.protocol === "https:")
+      ? fetch(API_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ task: "ping" }), signal: ctl ? ctl.signal : undefined })
+          .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+      : Promise.resolve(null);
+    tryGemini.then(function (j) {
+      clearTimeout(timer);
+      if (j && j.ok) { AI.mode = "gemini"; updatePill(); return; }
+      if (window.claude && typeof window.claude.use === "function") {
+        window.claude.use("sample").then(function (s) {
+          if (s) { AI.sample = s; AI.mode = "claude"; }
+          updatePill();
+        }).catch(function () { updatePill(); });
+      } else updatePill();
+    });
+  }
+
+  // ======================================================
+  // Conversation UI
+  // ======================================================
+  function addMsg(kind, text, opts) {
+    opts = opts || {};
+    var d = document.createElement("div");
+    d.className = "msg " + kind + (opts.noAnim ? "" : " anim") + (opts.cls ? " " + opts.cls : "");
+    if (kind !== "note") {
+      var who = document.createElement("span"); who.className = "who";
+      who.textContent = kind === "agent" ? (opts.ai ? "Coach · AI" : "Coach") : (opts.voice ? "You · heard by voice" : "You");
+      d.appendChild(who);
+    }
+    var body = document.createElement("span"); body.textContent = text; d.appendChild(body);
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  function addTyping() {
+    var d = document.createElement("div");
+    d.className = "msg agent anim";
+    d.innerHTML = '<span class="who">Coach · AI</span><span class="typing" aria-label="Thinking"><i></i><i></i><i></i></span>';
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  function setInputsEnabled(on) {
+    var active = on && canTalk();
+    input.disabled = !active; sendBtn.disabled = !active;
+    micBtn.disabled = !active || micBlocked;
+    quickBtns.forEach(function (b) {
+      var c = b.dataset.cmd;
+      b.disabled = !active || (c === "hint" && S.phase !== "meaning") || (c === "ask" && !AI.mode);
+      b.classList.toggle("active", c === "ask" && S.askMode);
+    });
+    input.placeholder = S.askMode ? "Ask anything about this word…" : (S.phase === "sentence" ? "Type your sentence…" : "Type your answer…");
+  }
+  function say(lines, opts) {
+    opts = opts || {};
+    S.busy = true; S.interruptible = !!opts.prompt; setInputsEnabled(true);
+    statusMain.textContent = "Coach is speaking…";
+    statusSub.textContent = opts.prompt ? "You can interrupt by tapping the orb or typing." : "";
+    var myTurn = ++turnCounter;
+    var chain = Promise.resolve();
+    lines.forEach(function (l) {
+      chain = chain.then(function () {
+        if (myTurn !== turnCounter) return;
+        var item = typeof l === "string" ? { t: l } : l;
+        if (!item.silent) addMsg("agent", item.t, { ai: item.ai, cls: item.cls });
+        return speak(item.say || item.t, item.lang);
+      });
+    });
+    return chain.then(function () {
+      if (myTurn !== turnCounter) return;
+      S.busy = false; setInputsEnabled(true); setIdleStatus();
+      if (opts.prompt) S.lastPrompt = opts.prompt;
+      if (opts.listen && !micBlocked && !S.muted) listen();
+    });
+  }
+  function thinking(on, text) {
+    S.busy = on; if (on) S.interruptible = false;
+    Orb.set(on ? "thinking" : "idle");
+    if (on) { statusMain.textContent = text || "Thinking…"; statusSub.textContent = "The AI coach is checking."; }
+    setInputsEnabled(true);
+  }
+
+  // ======================================================
+  // Stage rendering
+  // ======================================================
+  function attachTilt(el, strength) {
+    if (reduceMotion || !el) return;
+    el.addEventListener("pointermove", function (e) {
+      if (e.pointerType === "touch") return;
+      var r = el.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      el.style.setProperty("--ry", (x * strength).toFixed(2) + "deg");
+      el.style.setProperty("--rx", (-y * strength).toFixed(2) + "deg");
+    });
+    el.addEventListener("pointerleave", function () { el.style.setProperty("--ry", "0deg"); el.style.setProperty("--rx", "0deg"); });
+  }
+  function swapStage(html, after) {
+    var old = stageBody.firstElementChild;
+    var put = function () {
+      stageBody.innerHTML = html;
+      var n = stageBody.firstElementChild;
+      if (n && !reduceMotion) n.classList.add("entering");
+      if (after) after();
+    };
+    if (old && !reduceMotion) { old.classList.add("leaving"); setTimeout(put, 300); } else put();
+  }
+
+  function renderSetup(quiet) {
+    var tally = loadTally(), learned = Object.keys(tally).length;
+    var html =
+      '<div class="panel setup">' +
+      '<div class="face-head" style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="label">Choose your words</span>' +
+      (learned ? '<span class="label">' + learned + " words mastered so far</span>" : "") + "</div>" +
+      '<div class="levels" role="group" aria-label="Level">' +
+      Object.keys(LEVELS).map(function (k) {
+        var L = LEVELS[k];
+        return '<button class="level" data-level="' + k + '" aria-pressed="' + (S.level === k) + '">' + (L.tag ? '<span class="tag">' + L.tag + "</span>" : "") +
+          "<strong>" + L.name + "</strong><small>e.g. " + L.eg + "</small></button>";
+      }).join("") + "</div>" +
+      '<span class="label">Or let AI pick words on any topic</span>' +
+      '<form class="topic" id="topicForm"><input id="topicInput" type="text" maxlength="60" placeholder="' + (AI.mode ? "e.g. banking, cricket, job interviews" : "Needs the AI coach to be on") + '" ' + (AI.mode ? "" : "disabled") + ' value="' + esc(S.topic) + '">' +
+      '<button class="secondary" type="submit" id="topicBtn" ' + (AI.mode ? "" : "disabled") + ">Create words</button></form>" +
+      (AI.mode ? '<div class="topic-chips">' + TOPIC_IDEAS.map(function (t) { return '<button type="button" data-topic="' + esc(t) + '">' + esc(t) + "</button>"; }).join("") + "</div>" : "") +
+      '<p class="err" id="topicErr" hidden></p>' +
+      '<button class="primary" id="startBtn">Start speaking practice</button>' +
+      '<p class="hint-text">' + SESSION_SIZE + " words per round. Explain each word, then use it in a sentence. Say “hint”, “repeat” or “skip” any time.</p>" +
+      "</div>";
+    var bind = function () {
+      stageBody.querySelectorAll(".level").forEach(function (b) {
+        attachTilt(b, 10);
+        b.onclick = function () { S.level = b.dataset.level; stageBody.querySelectorAll(".level").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); };
+      });
+      $("startBtn").onclick = function () { startSession(BANK[S.level], LEVELS[S.level].name); };
+      $("topicForm").onsubmit = function (e) { e.preventDefault(); makeTopic($("topicInput").value); };
+      stageBody.querySelectorAll("[data-topic]").forEach(function (b) { b.onclick = function () { $("topicInput").value = b.dataset.topic; makeTopic(b.dataset.topic); }; });
+    };
+    if (quiet) { stageBody.innerHTML = html; bind(); } else swapStage(html, bind);
+  }
+
+  function renderCard(animate) {
+    var w = S.cur, pos = S.order.indexOf(w.w) + 1;
+    var hindiBlock = (S.hintShown || S.revealed) && w.hi
+      ? '<div class="hindi"><span class="label">Hindi</span><strong lang="hi">' + esc(w.hi) + "</strong></div>"
+      : "";
+    var html =
+      '<div class="flip' + (S.revealed ? " revealed" : "") + '" id="flip"><div class="tilt" id="tilt"><div class="flip-inner">' +
+        '<div class="face front">' +
+          '<div class="face-head"><span class="label">Word ' + pos + " of " + S.order.length + '</span><span class="label">' + (S.phase === "meaning" ? "Step 1 · meaning" : "Step 2 · your sentence") + "</span></div>" +
+          '<h2 class="headword">' + esc(w.w) + '</h2><div class="pron"><span>' + esc(w.syl || w.w) + '</span><span class="pos">' + esc(w.pos || "") + "</span></div>" +
+          hindiBlock +
+          '<p class="prompt-line">' + (S.phase === "meaning" ? "Explain what it means, in your own words." : "Now use it in your own sentence.") + "</p>" +
+          (S.revealed ? '<button class="flip-btn" data-flip>Show meaning ↻</button>' : "") +
+        "</div>" +
+        '<div class="face back">' +
+          '<div class="face-head"><span class="label">' + esc(w.w) + ' · meaning</span><span class="label pos">' + esc(w.pos || "") + "</span></div>" +
+          '<p class="def">' + esc(cap(w.def)) + ".</p>" +
+          (w.hi ? '<div class="hindi"><span class="label">Hindi</span><strong lang="hi">' + esc(w.hi) + "</strong></div>" : "") +
+          '<p class="ex">“' + esc(w.ex) + "”</p>" +
+          '<button class="flip-btn" data-flip style="margin-top:auto">Show word ↻</button>' +
+        "</div>" +
+      "</div></div></div>" ;
+    var track = '<div class="track" style="margin-top:12px">' + S.order.map(function (x) {
+      var r = S.results[x];
+      var cls = x === w.w ? "current" : (r && r.status === "ok" ? "ok" : (r && r.status === "review" ? "review" : ""));
+      return '<span class="chip ' + cls + '">' + esc(x) + "</span>";
+    }).join("") + "</div>";
+    var full = "<div>" + html + track + "</div>";
+    var bind = function () {
+      attachTilt($("tilt"), 8);
+      stageBody.querySelectorAll("[data-flip]").forEach(function (b) { b.onclick = function () { $("flip").classList.toggle("revealed"); }; });
+    };
+    if (animate) swapStage(full, bind); else { stageBody.innerHTML = full; bind(); }
+  }
+  function revealCard() {
+    S.revealed = true;
+    renderCard(false);
+    var g = $("flip");
+    if (g) { g.classList.remove("revealed"); void g.offsetWidth; requestAnimationFrame(function () { g.classList.add("revealed"); }); }
+  }
+  function showFront() { var f = $("flip"); if (f) f.classList.remove("revealed"); }
+
+  function renderRecap() {
+    var ok = 0, rev = [];
+    S.order.forEach(function (x) { if (S.results[x].status === "ok") ok++; else rev.push(x); });
+    var html =
+      '<div class="panel recap">' +
+      '<span class="label">Round recap · ' + esc(S.sessionName) + "</span>" +
+      '<div class="score">' + ok + "<small> of " + S.order.length + " words mastered</small></div>" +
+      '<div class="recap-list">' + S.order.map(function (x) {
+        var r = S.results[x], wd = S.map[x];
+        return '<div class="recap-row"><span><b>' + esc(x) + '</b> <span class="chip ' + (r.status === "ok" ? "ok" : "review") + '">' + (r.status === "ok" ? "mastered" : "review") +
+          '</span></span><span class="r-hi" lang="hi">' + esc(wd.hi || wd.def) + "</span></div>";
+      }).join("") + "</div>" +
+      '<div class="row">' + (rev.length ? '<button class="primary" id="reviewBtn">Practise ' + rev.length + " review word" + (rev.length > 1 ? "s" : "") + "</button>" : "") +
+      '<button class="secondary" id="newBtn">New round</button></div></div>';
+    swapStage(html, function () {
+      if (rev.length) $("reviewBtn").onclick = function () { startSession(rev.map(function (x) { return S.map[x]; }), "Review", true); };
+      $("newBtn").onclick = function () { S.phase = "idle"; $("sessionLabel").textContent = ""; renderSetup(); setInputsEnabled(false); setIdleStatus(); };
+    });
+  }
+
+  // ======================================================
+  // Session flow
+  // ======================================================
+  function unlockAudio() { if (synth) { try { synth.cancel(); var u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); } catch (e) {} } }
+
+  function makeTopic(topic) {
+    topic = clip(topic, 60);
+    var err = $("topicErr");
+    if (!topic) { err.hidden = false; err.textContent = "Type a topic first, for example “banking”."; return; }
+    if (!AI.mode) return;
+    unlockAudio();
+    S.topic = topic;
+    var btn = $("topicBtn"), start = $("startBtn");
+    btn.disabled = true; start.disabled = true; btn.textContent = "Creating…"; err.hidden = true;
+    Orb.set("thinking"); statusMain.textContent = "Creating your word set…"; statusSub.textContent = "Topic: " + topic;
+    callAI("topic", { topic: topic, level: LEVELS[S.level].name }).then(function (res) {
+      var list = cleanWords(res && res.words);
+      if (list.length < 3) throw new Error("few");
+      Orb.set("idle");
+      startSession(list, cap(topic));
+    }).catch(function () {
+      Orb.set("idle"); setIdleStatus();
+      if ($("topicBtn")) { $("topicBtn").disabled = false; $("topicBtn").textContent = "Create words"; $("startBtn").disabled = false; }
+      if ($("topicErr")) { $("topicErr").hidden = false; $("topicErr").textContent = "I couldn't create words for that topic. Try a different topic, or pick a level above."; }
+    });
+  }
+  function cleanWords(arr) {
+    if (!Array.isArray(arr)) return [];
+    var seen = {};
+    return arr.map(function (o) {
+      if (!o || typeof o !== "object") return null;
+      var w = clip(o.w, 30).toLowerCase();
+      if (!w || !/^[a-z][a-z' -]*$/.test(w) || seen[w] || !o.def || !o.ex) return null;
+      seen[w] = 1;
+      var kw = Array.isArray(o.kw) ? o.kw.map(function (k) { return clip(k, 40).toLowerCase(); }).filter(Boolean) : [];
+      var forms = Array.isArray(o.forms) ? o.forms.map(function (k) { return clip(k, 30).toLowerCase(); }).filter(Boolean) : [];
+      if (forms.indexOf(w) < 0) forms.unshift(w);
+      return { w: w, syl: clip(o.syl, 40) || w, pos: clip(o.pos, 20) || "word", def: clip(o.def, 140).replace(/\.$/, ""), hi: clip(o.hi, 40), hiRoman: clip(o.hiRoman, 30).toLowerCase(), ex: clip(o.ex, 160), kw: kw, forms: forms };
+    }).filter(Boolean).slice(0, SESSION_SIZE);
+  }
+
+  function startSession(words, name, isReview) {
+    unlockAudio();
+    var list = isReview ? words.slice() : (words.length > SESSION_SIZE ? shuffle(words).slice(0, SESSION_SIZE) : words.slice());
+    S.queue = list.slice(); S.order = list.map(function (w) { return w.w; }); S.results = {}; S.map = {}; S.sessionName = name;
+    list.forEach(function (w) { S.map[w.w] = w; S.results[w.w] = { status: null, meaning: false, sentence: false, repeated: false }; });
+    $("sessionLabel").textContent = name;
+    log.innerHTML = "";
+    S.phase = "intro";
+    var intro = isReview
+      ? "Welcome back. Let's practise the " + list.length + " word" + (list.length > 1 ? "s" : "") + " you found tricky."
+      : "Namaste! Let's learn " + list.length + " words. For each one, tell me what it means, then use it in your own sentence.";
+    var lines = [intro, "You can say hint, repeat, or skip at any time."];
+    if (AI.mode) lines.push("And if you're curious, just ask me anything about a word.");
+    say(lines).then(function () { if (S.phase === "intro") nextWord(); });
+  }
+  function nextWord() {
+    if (!S.queue.length) return finish();
+    S.cur = S.queue.shift();
+    S.phase = "meaning"; S.meaningTries = 0; S.sentenceTries = 0; S.hintShown = false; S.revealed = false; S.askMode = false;
+    renderCard(true);
+    var w = S.cur.w;
+    var p = (S.results[w].repeated ? "This one again: " : "Your word is ") + w + ". " + cap(w) + ". What do you think it means?";
+    say([p], { prompt: p, listen: true });
+  }
+  function giveHint() {
+    if (S.phase !== "meaning") return;
+    var w = S.cur;
+    S.hintShown = true; renderCard(false);
+    var hasHindiVoice = !!pickVoice("hi");
+    if (!w.hi) return say(["Here's a hint: it's related to " + (w.kw[0] || "its example") + ". Try explaining it now."], { prompt: S.lastPrompt, listen: true });
+    var lines = [{ t: "Here's a hint. In Hindi, " + w.w + " means " + w.hi + ".", say: "Here's a hint. " + (hasHindiVoice ? "In Hindi:" : "The Hindi meaning is on your card.") }];
+    if (hasHindiVoice) lines.push({ t: w.hi, silent: true, lang: "hi" });
+    lines.push("Now try to explain it in English.");
+    say(lines, { prompt: S.lastPrompt, listen: true });
+  }
+  function explainAndContinue(lead) {
+    var w = S.cur;
+    markReview(); revealCard();
+    var lines = [(lead ? lead + " " : "") + cap(w.w) + " means " + w.def + "."];
+    if (w.hi) lines.push({ t: "Hindi: " + w.hi + ".", say: "The Hindi meaning is on your card." });
+    lines.push("For example: " + w.ex);
+    say(lines).then(function () { if (S.cur === w) askSentence(); });
+  }
+  function askSentence() {
+    S.phase = "sentence"; S.sentenceTries = 0; S.askMode = false;
+    renderCard(false);
+    var p = "Now make your own sentence using the word " + S.cur.w + ".";
+    say([p], { prompt: p, listen: true });
+  }
+  function markReview() {
+    var r = S.results[S.cur.w];
+    if (!r.repeated && S.queue.length) { r.repeated = true; S.queue.splice(Math.min(2, S.queue.length), 0, S.cur); }
+  }
+  function wordDone(ok, lines) {
+    var w = S.cur, r = S.results[w.w];
+    r.sentence = ok;
+    r.status = (r.meaning && ok) ? "ok" : "review";
+    if (r.status === "ok") { var t = loadTally(); t[w.w] = Date.now(); saveTally(t); } else markReview();
+    S.phase = "between"; setInputsEnabled(false);
+    var out = (lines || []).slice();
+    if (r.status === "review" && r.repeated && S.queue.indexOf(w) > -1) out.push("I'll bring this word back in a moment.");
+    renderCardTrackOnly();
+    say(out).then(function () { if (S.cur === w) nextWord(); });
+  }
+  function renderCardTrackOnly() {
+    var chips = stageBody.querySelectorAll(".chip");
+    chips.forEach(function (c) {
+      var r = S.results[c.textContent];
+      c.className = "chip " + (r && r.status === "ok" ? "ok" : r && r.status === "review" ? "review" : (c.textContent === S.cur.w ? "current" : ""));
+    });
+  }
+  function finish() {
+    S.phase = "done"; setInputsEnabled(false); renderRecap();
+    var ok = S.order.filter(function (x) { return S.results[x].status === "ok"; });
+    var rev = S.order.filter(function (x) { return S.results[x].status !== "ok"; });
+    var lines = ["That's the end of this round. You mastered " + ok.length + " of " + S.order.length + " words."];
+    lines.push(rev.length ? "Words to review: " + rev.join(", ") + ". One more practice and they'll stick." : "Perfect round! Try a harder level or a new topic next.");
+    say(lines).then(setIdleStatus);
+  }
+
+  // ======================================================
+  // Understanding the learner
+  // ======================================================
+  function hasPhrase(t, list) {
+    for (var i = 0; i < list.length; i++) {
+      var k = String(list[i]).toLowerCase().trim(); if (!k) continue;
+      if (t.indexOf(" " + k + " ") > -1) return true;
+    }
+    return false;
+  }
+  function isCmd(t, list) { return hasPhrase(t, list) && t.trim().split(" ").length <= 5; }
+  function isQuestion(raw, t) {
+    if (/\?\s*$/.test(raw)) return true;
+    return /^ (what|why|how|when|where|which|who|whom|can|could|is|are|does|do|should|would|will|tell me|explain|give me|difference|kya|kaise) /.test(t) && t.trim().split(" ").length >= 3;
+  }
+  function usesWord(t, w) {
+    var toks = t.trim().split(" ");
+    if (w.forms.some(function (f) { return t.indexOf(" " + f + " ") > -1; })) return "exact";
+    for (var i = 0; i < toks.length; i++) {
+      for (var j = 0; j < w.forms.length; j++) {
+        var f = w.forms[j], tk = toks[i];
+        if (f.length >= 6 && Math.abs(f.length - tk.length) <= 2 && lev(f, tk) <= 2) return "fuzzy";
+        if (f.length >= 4 && f.length < 6 && Math.abs(f.length - tk.length) <= 1 && lev(f, tk) <= 1) return "fuzzy";
+      }
+    }
+    return null;
+  }
+
+  function handleUser(raw, fromVoice) {
+    if (!canTalk()) return;
+    var text = String(raw).trim();
+    if (!text) return;
+    if (S.busy && !S.interruptible) { statusSub.textContent = "One moment, the coach is finishing."; return; }
+    turnCounter++; if (synth) try { synth.cancel(); } catch (e) {}
+    S.busy = false;
+    stopListening();
+    addMsg("user", text, { voice: fromVoice });
+    var t = norm(text), w = S.cur;
+
+    if (isCmd(t, ["repeat", "again", "say again", "pardon"])) { S.askMode = false; return say([S.lastPrompt || "Let's continue."], { prompt: S.lastPrompt, listen: true }); }
+    if (isCmd(t, ["slower", "slow down", "slowly"])) { setSpeed(true); return say(["Sure, I'll speak slower. " + S.lastPrompt], { prompt: S.lastPrompt, listen: true }); }
+    if (S.phase === "meaning" && isCmd(t, ["hint", "help", "clue", "hindi", "give me a hint"])) { S.askMode = false; return giveHint(); }
+    if (isCmd(t, ["skip", "don't know", "dont know", "do not know", "no idea", "not sure", "pata nahi", "nahi pata", "i don't know"])) {
+      S.askMode = false;
+      if (S.phase === "meaning") { S.results[w.w].meaning = false; return explainAndContinue("No problem."); }
+      return wordDone(false, ["No problem. Here's a sentence you can borrow: " + w.ex]);
+    }
+    if (S.phase === "meaning" && /what (does|is) (it|this|that|the word)?\s*(mean|meaning)|^ meaning |batao/.test(t)) {
+      S.results[w.w].meaning = false; return explainAndContinue("Here you go.");
+    }
+
+    // Questions about the word go to the AI coach.
+    var looksLikeSentence = S.phase === "sentence" && usesWord(t, w);
+    if (S.askMode || (isQuestion(text, t) && !looksLikeSentence && AI.mode)) return answerQuestion(text);
+
+    if (S.phase === "meaning") return checkMeaning(text, t);
+    if (S.phase === "sentence") return checkSentence(text, t, fromVoice);
+  }
+
+  function answerQuestion(q) {
+    var w = S.cur;
+    S.askMode = false;
+    if (!AI.mode) return say(["Questions need the AI coach, which isn't on right now. Let's continue. " + S.lastPrompt], { prompt: S.lastPrompt, listen: true });
+    thinking(true, "Thinking about your question…");
+    var bubble = addTyping(), myTurn = turnCounter;
+    callAI("ask", { word: w, question: q }).then(function (res) {
+      bubble.remove(); thinking(false);
+      if (myTurn !== turnCounter || S.cur !== w) return;
+      var a = res && typeof res.answer === "string" && res.answer.trim() ? clip(res.answer, 400) : "Good question! Let's keep practising and it will become clearer.";
+      say([{ t: a, ai: true, cls: "ai-answer" }, "Back to our word. " + S.lastPrompt], { prompt: S.lastPrompt, listen: true });
+    }).catch(function () {
+      bubble.remove(); thinking(false);
+      if (myTurn !== turnCounter) return;
+      say(["Sorry, I couldn't answer that just now. Let's continue. " + S.lastPrompt], { prompt: S.lastPrompt, listen: true });
+    });
+  }
+
+  // Rule-based meaning check, used when AI is off or fails.
+  function ruleMeaning(t, w) {
+    var hindi = (w.hiRoman && t.indexOf(" " + w.hiRoman) > -1) || (w.hi && w.hi.split(/[,\s]+/).some(function (h) { return h.length > 1 && t.indexOf(h) > -1; }));
+    if (hasPhrase(t, w.kw)) return { verdict: "correct", hindi: false };
+    if (hindi) return { verdict: "correct", hindi: true };
+    var defToks = tokens(w.def).filter(function (x) { return x.length >= 4 && STOP.indexOf(x) < 0; });
+    var ans = t.trim().split(" ").filter(function (x) { return x.length >= 4 && STOP.indexOf(x) < 0; });
+    var overlap = ans.filter(function (a) { return defToks.some(function (d) { return d === a || (a.length >= 5 && d.indexOf(a.slice(0, 5)) === 0); }); });
+    if (overlap.length >= 2) return { verdict: "correct", hindi: false };
+    if (overlap.length === 1) return { verdict: "close", hindi: false };
+    return { verdict: "wrong", hindi: false };
+  }
+
+  function checkMeaning(raw, t) {
+    var w = S.cur;
+    var apply = function (v, feedback, fromAI) {
+      if (S.cur !== w || S.phase !== "meaning") return;
+      if (v.verdict === "correct") {
+        S.results[w.w].meaning = true; revealCard();
+        var praise = pick(["Yes, exactly!", "Correct!", "Well done!", "That's right!", "Shabaash!"]);
+        var first = v.hindi ? praise + " That's the Hindi meaning. In English, " + w.w + " means " + w.def + "."
+          : (fromAI && feedback ? feedback + " " : praise + " ") + cap(w.w) + " means " + w.def + ".";
+        return say([{ t: first, ai: fromAI }, "For example: " + w.ex]).then(function () { if (S.cur === w) askSentence(); });
+      }
+      S.meaningTries++;
+      if (S.meaningTries >= 2) { S.results[w.w].meaning = v.verdict === "close"; return explainAndContinue(v.verdict === "close" ? "You're very close." : "Good try."); }
+      if (v.verdict === "close") {
+        var fb = fromAI && feedback ? feedback : "You're close! Can you add a little more detail?";
+        return say([{ t: fb, ai: fromAI }], { prompt: "Try explaining " + w.w + " once more.", listen: true });
+      }
+      // wrong on first try: Hindi hint
+      if (!S.hintShown && w.hi) {
+        S.hintShown = true; renderCard(false);
+        var hv = !!pickVoice("hi");
+        var lines = [{ t: (fromAI && feedback ? feedback + " " : "Not quite. ") + "Here's a hint: in Hindi, " + w.w + " means " + w.hi + ". Try again.", say: (fromAI && feedback ? feedback : "Not quite.") + " Here's a hint. " + (hv ? "" : "Look at the Hindi meaning on your card, and try again."), ai: fromAI }];
+        if (hv) { lines.push({ t: w.hi, silent: true, lang: "hi" }); lines.push({ t: "Try again in English.", silent: true }); }
+        return say(lines, { prompt: "Try explaining " + w.w + " again.", listen: true });
+      }
+      return say([{ t: (fromAI && feedback) ? feedback : "Not quite. Think about the example and try once more.", ai: fromAI }], { prompt: "Try explaining " + w.w + " again.", listen: true });
+    };
+
+    var quick = ruleMeaning(t, w);
+    if (!AI.mode || quick.hindi) return apply(quick, "", false);
+    thinking(true, "Checking your answer…");
+    var bubble = addTyping(), myTurn = turnCounter;
+    callAI("judge", { word: w, answer: raw }).then(function (res) {
+      bubble.remove(); thinking(false);
+      if (myTurn !== turnCounter) return;
+      var v = res && ["correct", "close", "wrong"].indexOf(res.verdict) > -1 ? res.verdict : quick.verdict;
+      // Never mark down an answer the rules already accept.
+      if (quick.verdict === "correct" && v !== "correct") v = "correct";
+      apply({ verdict: v, hindi: false }, res && typeof res.feedback === "string" ? clip(res.feedback, 200) : "", true);
+    }).catch(function () {
+      bubble.remove(); thinking(false);
+      if (myTurn !== turnCounter) return;
+      apply(quick, "", false);
+    });
+  }
+
+  function checkSentence(raw, t, fromVoice) {
+    var w = S.cur;
+    var used = usesWord(t, w);
+    var count = t.trim().split(" ").filter(Boolean).length;
+    S.sentenceTries++;
+
+    if (!used) {
+      if (S.sentenceTries < 2) {
+        var heard = fromVoice ? "I heard: “" + raw + "”. I didn't catch the word " + w.w + " in that. " : "I don't see the word " + w.w + " in that. ";
+        return say([heard + "Try once more, and say " + w.w + " clearly."], { prompt: "Make a sentence using the word " + w.w + ".", listen: true });
+      }
+      if (count >= 5 && !AI.mode) {
+        return wordDone(true, ["I couldn't quite catch the word " + w.w + ", but your sentence sounds good, so I'll count it. Speech recognition sometimes mishears new words."]);
+      }
+      if (!AI.mode) return wordDone(false, ["That's okay, this one is tricky. Here's a sentence you can borrow: " + w.ex]);
+    }
+    if (used && count < 4 && S.sentenceTries < 2) {
+      return say(["Good start! Can you make it a full sentence, about five words or more?"], { prompt: "Make a full sentence using " + w.w + ".", listen: true });
+    }
+    if (!AI.mode) return wordDone(true, [pick(["Great sentence!", "Nice, that works!", "Well used!", "Shabaash! Good sentence."])]);
+
+    thinking(true, "Checking your sentence…");
+    var bubble = addTyping(), myTurn = turnCounter;
+    callAI("sentence", { word: w, sentence: raw }).then(function (res) {
+      bubble.remove(); thinking(false);
+      if (myTurn !== turnCounter) return;
+      var good = !(res && res.correct === false);
+      var fb = res && typeof res.feedback === "string" && res.feedback.trim() ? clip(res.feedback, 220) : (good ? "Great sentence!" : "Close, but the meaning is a little off.");
+      var lines = [{ t: fb, ai: true }];
+      if (res && typeof res.better === "string" && res.better.trim()) lines.push({ t: "You could also say: " + clip(res.better, 220), ai: true });
+      if (!good && S.sentenceTries < 2) {
+        lines.push("Want to try one more sentence?");
+        return say(lines, { prompt: "Try another sentence with " + w.w + ".", listen: true });
+      }
+      wordDone(good, lines);
+    }).catch(function () {
+      bubble.remove(); thinking(false);
+      if (myTurn !== turnCounter) return;
+      if (!used) return wordDone(false, ["That's okay, this one is tricky. Here's a sentence you can borrow: " + w.ex]);
+      wordDone(true, [pick(["Great sentence!", "Nice, that works!", "Well used!"])]);
+    });
+  }
+
+  // ======================================================
+  // Controls
+  // ======================================================
+  function setSpeed(slow) { S.slow = slow; $("spdSlow").setAttribute("aria-pressed", slow); $("spdNormal").setAttribute("aria-pressed", !slow); }
+  $("spdNormal").onclick = function () { setSpeed(false); };
+  $("spdSlow").onclick = function () { setSpeed(true); };
+  $("voiceOn").onclick = function () { S.muted = false; $("voiceOn").setAttribute("aria-pressed", true); $("voiceOff").setAttribute("aria-pressed", false); };
+  $("voiceOff").onclick = function () { S.muted = true; if (synth) try { synth.cancel(); } catch (e) {} $("voiceOn").setAttribute("aria-pressed", false); $("voiceOff").setAttribute("aria-pressed", true); };
+
+  function orbTap() {
+    if (S.phase === "idle") { var b = $("startBtn"); if (b) b.focus(); return; }
+    if (listening) return stopListening();
+    if (micBlocked) { if (canTalk()) input.focus(); return; }
+    listen();
+  }
+  $("orb").addEventListener("click", orbTap);
+  $("orb").addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); orbTap(); } });
+  micBtn.onclick = orbTap;
+  $("typeForm").addEventListener("submit", function (e) { e.preventDefault(); var v = input.value; input.value = ""; handleUser(v, false); });
+  quickBtns.forEach(function (b) {
+    b.onclick = function () {
+      if (S.busy && !S.interruptible) return;
+      var c = b.dataset.cmd;
+      if (c === "hint") { turnCounter++; if (synth) try { synth.cancel(); } catch (e) {} addMsg("user", "Hint, please"); S.askMode = false; giveHint(); }
+      else if (c === "ask") {
+        S.askMode = !S.askMode; setInputsEnabled(true); setIdleStatus();
+        if (S.askMode) { turnCounter++; if (synth) try { synth.cancel(); } catch (e) {} S.busy = false; setInputsEnabled(true); input.focus(); if (!micBlocked) listen(); }
+      }
+      else handleUser(c === "repeat" ? "repeat" : "I don't know", false);
+    };
+  });
+
+  // ======================================================
+  // First frame
+  // ======================================================
+  addMsg("agent", "Hi! I'm Shabd, your vocabulary coach. Pick a level or a topic, then press Start. I'll say a word, you explain it, then you use it in a sentence.", { noAnim: true });
+  addMsg("note", "Example · Coach: “frugal”. You: “careful with money”. Coach: “Correct! Now use it in a sentence.”", { noAnim: true });
+  renderSetup(true);
+  setIdleStatus();
+  Orb.start();
+  initAI();
+})();
+</script>
+
+</body>
+</html>
